@@ -7,7 +7,7 @@ from typing import Callable, Self, Union, Dict, Iterator, Any
 import numpy as np
 import pandas as pd
 
-from time_units import TimeUnit
+from .time_units import TimeUnit
 
 
 def _calculate_times(time_between: np.ndarray, service_time: np.ndarray) -> np.ndarray:
