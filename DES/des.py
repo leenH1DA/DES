@@ -6,6 +6,7 @@ from typing import Callable, Self, Union, Dict, Iterator, Any
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from .time_units import TimeUnit
 
@@ -43,10 +44,18 @@ def _calculate_times(time_between: np.ndarray, service_time: np.ndarray) -> np.n
     return result
 
 
+def _system_state(arrival_time: np.ndarray, end_time: np.ndarray) -> np.ndarray:
+    state: np.ndarray = np.zeros(end_time[-1] - arrival_time[0])
+
+    for i in range(arrival_time.shape[0]):
+        state[arrival_time[i]:end_time[i]] += 1
+
+    return state
+
+
 class DES:
     _random_seed: Union[int, None] = None
     _sample_size: Union[int, None] = None
-    _experiments: Union[int, None] = None
 
     _time_between_distro: Callable = random.uniform
     _time_between_params: dict = {"a": 0, "b": 1}  # Default params for random.uniform
@@ -55,10 +64,14 @@ class DES:
     _service_time_params: dict = {"a": 0, "b": 1}  # Default params for random.uniform
 
     _entity_name: str = "Entity"
+    _system_name: str = "System"
     _sim_number: int = 1
     _time_unit: str = TimeUnit.Sec
 
     _df: pd.DataFrame = pd.DataFrame()
+
+    vec_calculate_times = np.vectorize(_calculate_times, signature="(n),(n) -> (n,m)")
+    vec_calculate_state = np.vectorize(_system_state, signature="(n),(n) -> (m)")
 
     def __init__(self) -> None:
         pass
@@ -85,12 +98,6 @@ class DES:
         self._sample_size = sample_size
         return self
 
-    def set_experiments(self, experiments: int) -> Self:
-        if experiments < 0:
-            raise ValueError(f"experiments must be greater than or equal to 0: {experiments}")
-        self._experiments = experiments
-        return self
-
     def set_entity_name(self, entity_name: str) -> Self:
         self._entity_name = entity_name
         return self
@@ -103,6 +110,10 @@ class DES:
         if not TimeUnit.is_valid_unit(time_unit):
             raise ValueError(f"time_unit must be one of: {TimeUnit.all_units()}")
         self._time_unit = time_unit
+        return self
+
+    def set_system_name(self, system_name: str) -> Self:
+        self._system_name = system_name
         return self
 
     def _generate_array(self, distro: Callable, params: dict) -> np.ndarray:
@@ -123,11 +134,7 @@ class DES:
     def _generate_service_time_array(self) -> np.ndarray:
         return self._generate_array(self._service_time_distro, self._service_time_params)
 
-    vec_calculate_times = np.vectorize(_calculate_times, signature="(n),(n) -> (n,m)")
-
     def run(self):
-        if self._experiments is None:
-            pass
         time_between: np.ndarray = self._generate_time_between_array()
         time_between[0] = 0
         service_time: np.ndarray = self._generate_service_time_array()
@@ -145,9 +152,34 @@ class DES:
                 ]
         )
 
-    def show(self) -> None:
-        print(self._df.to_markdown())
+    def show(self, n: int = 5) -> None:
+        print(self._df[:n].to_markdown())
         print(self._df.sum().to_markdown())
+
+    def plot(self):
+        state: np.ndarray = DES.vec_calculate_state(
+                self.df["arrival_time"].values,
+                self.df["end_time"].values
+        )
+
+        time_intervals = np.arange(len(state))
+
+        # Plot the system state using step function for visual clarity
+        plt.figure(figsize=(10, 6))
+        plt.step(time_intervals, state, where='post', color='red', label=f'{self._entity_name} in System')
+
+        # plt.vlines(
+        #     self.df["arrival_time"].values, ymin=0, ymax=state.max(), color='blue', linestyle=':', label='Arrival'
+        #     )
+        # plt.vlines(
+        #     self.df["end_time"].values, ymin=0, ymax=state.max(), color='pink', linestyle=':', label='Departure'
+        #     )
+
+        plt.xlabel(self._time_unit)
+        plt.ylabel(self._entity_name)
+        plt.title(f'{self._system_name} State Over Time')
+        plt.legend()
+        plt.show()
 
     def save_to(
         self,
@@ -190,6 +222,7 @@ class DES:
             "time_between_params": self._time_between_params,
             "service_time_distro": self._service_time_distro.__name__,
             "service_time_params": self._service_time_params,
+            "system_name":         self._system_name,
             "entity_name":         self._entity_name,
             "time_unit":           self._time_unit,
         }
@@ -234,6 +267,7 @@ class DES:
         des_instance = cls() \
             .set_sample_size(metadata["sample_size"]) \
             .set_seed(metadata["random_seed"]) \
+            .set_system_name(metadata["system_name"]) \
             .set_entity_name(metadata["entity_name"]) \
             .set_time_unit(metadata["time_unit"])
 
@@ -259,8 +293,8 @@ class DES:
         for row in self._df.to_dict("records"):
             yield row
 
-    def __eq__(self, other: "DES") -> bool:
-        return self._random_seed == other.get_seed()
+    def __len__(self) -> int:
+        return self._sample_size
 
 
 def run_simulations(des: DES, n_times: int) -> Iterator[DES]:

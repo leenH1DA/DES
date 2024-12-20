@@ -1,0 +1,6 @@
+{
+    "mean_time_between": 3.5,
+    "mean_service_time": 1.667,
+    "mean_idle_time": 1.917,
+    "mean_waiting_time": 0.333
+}
