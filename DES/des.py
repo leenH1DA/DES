@@ -1,12 +1,12 @@
 import copy
+import json
 import os
 import random
-import json
-from typing import Callable, Self, Union, Dict, Iterator, Any
+from typing import Callable, Self, Union, Dict, Iterator, Any, Optional
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 from .time_units import TimeUnit
 
@@ -54,14 +54,14 @@ def _system_state(arrival_time: np.ndarray, end_time: np.ndarray) -> np.ndarray:
 
 
 class DES:
-    _random_seed: Union[int, None] = None
-    _sample_size: Union[int, None] = None
+    _random_seed: Optional[int] = None
+    _sample_size: Optional[int] = None
 
     _time_between_distro: Callable = random.uniform
-    _time_between_params: dict = {"a": 0, "b": 1}  # Default params for random.uniform
+    _time_between_params: Dict[str, Union[int, float]] = {"a": 0, "b": 1}
 
     _service_time_distro: Callable = random.uniform
-    _service_time_params: dict = {"a": 0, "b": 1}  # Default params for random.uniform
+    _service_time_params: Dict[str, Union[int, float]] = {"a": 0, "b": 1}
 
     _entity_name: str = "Entity"
     _system_name: str = "System"
@@ -73,8 +73,32 @@ class DES:
     vec_calculate_times = np.vectorize(_calculate_times, signature="(n),(n) -> (n,m)")
     vec_calculate_state = np.vectorize(_system_state, signature="(n),(n) -> (m)")
 
-    def __init__(self) -> None:
-        pass
+    def __init__(
+        self,
+        sample_size: Optional[int] = None,
+        time_between_distro: Callable = random.uniform,
+        time_between_params: Optional[Dict[str, Union[int, float]]] = None,
+        service_time_distro: Callable = random.uniform,
+        service_time_params: Optional[Dict[str, Union[int, float]]] = None,
+        entity_name: str = "Entity",
+        system_name: str = "System",
+        sim_number: int = 1,
+        time_unit: TimeUnit = TimeUnit.Sec,
+    ) -> None:
+        if time_between_params is None:
+            time_between_params = {"a": 0, "b": 1}
+        if service_time_params is None:
+            service_time_params = {"a": 0, "b": 1}
+
+        self._sample_size = sample_size
+        self._time_between_distro = time_between_distro
+        self._time_between_params = time_between_params
+        self._service_time_distro = service_time_distro
+        self._service_time_params = service_time_params
+        self._entity_name = entity_name
+        self._system_name = system_name
+        self._sim_number = sim_number
+        self._time_unit = time_unit
 
     def set_time_between_distro(self, distro: Callable, **params) -> Self:
         self._time_between_distro = distro
@@ -235,11 +259,14 @@ class DES:
         if self._df.empty:
             raise ValueError("Simulation data is empty. Run the simulation before calculating statistics.")
 
+        system_time: int = self._df["end_time"].values[-1] - self._df["arrival_time"].values[0]
+
         statistics = {
-            "mean_time_between": round(self._df["time_between"].mean(), 3),
-            "mean_service_time": round(self._df["service_time"].mean(), 3),
-            "mean_idle_time":    round(self._df["idle_time"].mean(), 3),
-            "mean_waiting_time": round(self._df["wait_time"].mean(), 3),
+            "mean_time_between":                               round(self._df["time_between"].mean(), 3),
+            "mean_service_time":                               round(self._df["service_time"].mean(), 3),
+            "mean_idle_time":                                  round(self._df["idle_time"].mean(), 3),
+            f"mean_waiting_time":                              round(self._df["wait_time"].sum() / system_time, 3),
+            f"mean_waiting_time for each {self._entity_name}": round(self._df["wait_time"].mean(), 3),
         }
 
         with open(statistics_path, "w") as stats_file:
@@ -297,9 +324,9 @@ class DES:
         return self._sample_size
 
 
-def run_simulations(des: DES, n_times: int) -> Iterator[DES]:
-    for i in range(0, n_times):
-        new_des = copy.deepcopy(des)
+def des_run_simulations(simulation: DES, n_times: int) -> Iterator[DES]:
+    for i in range(1, n_times+1):
+        new_des = copy.deepcopy(simulation)
         new_des.set_sim_number(new_des.get_sim_number() + i)
         if new_des.get_seed():
             new_des.set_seed(new_des.get_seed() + i)
