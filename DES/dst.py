@@ -161,7 +161,7 @@ class DST:
 
 
 def dst_run_simulations(simulation: DST, n_times: int, **kwargs) -> Iterator[DST]:
-    for i in range(1, n_times + 1):
+    for i in range(n_times):
         new_dst = copy.deepcopy(simulation)
         new_dst.set_instant_number(new_dst.get_instant_number() + i)
         if new_dst.get_seed():

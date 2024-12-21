@@ -325,7 +325,7 @@ class DES:
 
 
 def des_run_simulations(simulation: DES, n_times: int) -> Iterator[DES]:
-    for i in range(1, n_times+1):
+    for i in range(n_times):
         new_des = copy.deepcopy(simulation)
         new_des.set_sim_number(new_des.get_sim_number() + i)
         if new_des.get_seed():

@@ -14,6 +14,7 @@ if __name__ == "__main__":
 
     for i, car in enumerate(run_simulations(cars1, 10)):
         car.run()
+        car.save_to("csv")
         print(f"{i} is done")
 
     dst = DST() \
@@ -29,6 +30,6 @@ if __name__ == "__main__":
         .set_weights([2, 1.3, 1, 1])\
         .set_seed(42)
 
-    for ant in run_simulations(dst, 10):
+    for ant in run_simulations(dst, 30):
         a = ant.run()
         print(a)

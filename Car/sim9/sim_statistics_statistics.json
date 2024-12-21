@@ -1,7 +1,7 @@
 {
-    "mean_time_between": 3.498,
-    "mean_service_time": 1.997,
-    "mean_idle_time": 1.501,
-    "mean_waiting_time": 0.111,
-    "mean_waiting_time for each Car": 0.388
+    "mean_time_between": 3.0,
+    "mean_service_time": 2.0,
+    "mean_idle_time": 1.083,
+    "mean_waiting_time": 0.162,
+    "mean_waiting_time for each Car": 0.5
 }

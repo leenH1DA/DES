@@ -1,5 +1,5 @@
 {
-    "sample_size": 100000,
+    "sample_size": 12,
     "random_seed": 50,
     "time_between_distro": "uniform",
     "time_between_params": {
