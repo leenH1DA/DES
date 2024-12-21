@@ -26,7 +26,7 @@ if __name__ == "__main__":
                 Ant.move_right
             ]
     ).set_behaviors_calls(10) \
-        .set_weights([2, 1, 1, 1])\
+        .set_weights([2, 1.3, 1, 1])\
         .set_seed(42)
 
     for ant in run_simulations(dst, 10):

@@ -119,8 +119,8 @@ class DST:
 
         return param_dict
 
-    def run(self, with_defaults: bool = True, state_history: bool = False) -> Union[
-        Type[_sim_class], List[Type[_sim_class]]]:
+    def run(self, with_defaults: bool = True, state_history: bool = False
+            ) -> Union[Type[_sim_class], List[Type[_sim_class]]]:
         if self._random_seed is not None:
             random.seed(self._random_seed)
 
@@ -161,7 +161,7 @@ class DST:
 
 
 def dst_run_simulations(simulation: DST, n_times: int, **kwargs) -> Iterator[DST]:
-    for i in range(1, n_times+1):
+    for i in range(1, n_times + 1):
         new_dst = copy.deepcopy(simulation)
         new_dst.set_instant_number(new_dst.get_instant_number() + i)
         if new_dst.get_seed():
