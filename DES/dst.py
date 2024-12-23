@@ -5,7 +5,7 @@ import inspect
 import random
 import re
 
-type_pattern = functools.partial(re.findall, pattern=r"'[A-Za-z]+'")
+type_pattern = functools.partial(re.findall, pattern=r"'[A-Za-z]*'")
 
 
 class DST:
@@ -37,12 +37,12 @@ class DST:
             args_ranges = {}
 
         self._sim_class = sim_class
-        self._sim_class_signature = inspect.signature(sim_class.__init__)
+        self._sim_class_signature: inspect.Signature = inspect.signature(sim_class.__init__)
         self._sim_class_parameters: Dict[str, Tuple[str, Any]] = DST.function_signature_to_dict(sim_class.__init__)
         self._behaviors: List[Callable] = behaviors
-        self._behaviors_calls: int = behaviors_calls
+        self._behaviors_calls: Optional[int] = behaviors_calls
         self._args_ranges: Optional[Dict[str, Tuple[int, int]]] = args_ranges
-        self._weights: List[int] = weights if weights is not None else [1] * len(behaviors)
+        self._weights: Optional[List[int]] = weights
         self._random_seed: Optional[int] = random_seed
         self._instant_number: int = instant_number
 
@@ -129,12 +129,16 @@ class DST:
         instance = self._sim_class(**args)
         history = []
 
-        if len(self._weights) != len(self._behaviors):
+        if self._weights is not None and len(self._weights) != len(self._behaviors):
+            raise Exception("Weights and behaviors do not match")
+
+        if self._weights is None:
             self._weights = [1] * len(self._behaviors)
 
         for _ in range(self._behaviors_calls):
             if state_history:
                 history.append(copy.deepcopy(vars(instance)))
+
             behavior = random.choices(self._behaviors, weights=self._weights, k=1)[0]
             behavior(instance)
 
@@ -143,14 +147,14 @@ class DST:
     def get_sim_args(self, with_defaults):
         args = {}
         for arg, (arg_type, default) in self._sim_class_parameters.items():
-            if self._args_ranges and arg in self._args_ranges:
+            if arg in self._args_ranges:
                 lower, upper = self._args_ranges[arg]
-                if arg_type == 'int':
-                    args[arg] = random.randint(lower, upper)
+                if arg_type == 'str':
+                    args[arg] = str(random.randint(lower, upper))
                 elif arg_type == 'float':
                     args[arg] = random.uniform(lower, upper)
                 else:
-                    args[arg] = str(random.randint(lower, upper))
+                    args[arg] = random.randint(lower, upper)
             elif with_defaults and default is not None:
                 args[arg] = default
             elif arg == "self":

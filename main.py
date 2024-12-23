@@ -12,8 +12,9 @@ if __name__ == "__main__":
         .set_entity_name("Car") \
         .set_time_unit(TimeUnit.Min)
 
-    for i, car in enumerate(run_simulations(cars1, 10)):
+    for i, car in enumerate(run_simulations(cars1, 3)):
         car.run()
+        car.plot()
         car.save_to("csv")
         print(f"{i} is done")
 
@@ -27,9 +28,7 @@ if __name__ == "__main__":
                 Ant.move_right
             ]
     ).set_behaviors_calls(10) \
-        .set_weights([2, 1.3, 1, 1])\
-        .set_seed(42)
+     .set_args_ranges(x=(100, 150))
 
-    for ant in run_simulations(dst, 30):
-        a = ant.run()
-        print(a)
+    a = dst.run(state_history=True)
+    print(a)

@@ -36,3 +36,5 @@ def run_simulations(simulation: Union[DES, DST], n_times: int, **kwargs) -> Iter
         return des_run_simulations(simulation, n_times)
     if isinstance(simulation, DST):
         return dst_run_simulations(simulation, n_times, **kwargs)
+
+    raise TypeError(f'{simulation} is not a DES or DST')

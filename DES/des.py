@@ -149,7 +149,7 @@ class DES:
     def get_sim_number(self) -> int:
         return self._sim_number
 
-    def get_seed(self) -> Union[int | None]:
+    def get_seed(self) -> Union[int, None]:
         return self._random_seed
 
     def _generate_time_between_array(self) -> np.ndarray:
@@ -180,7 +180,7 @@ class DES:
         print(self._df[:n].to_markdown())
         print(self._df.sum().to_markdown())
 
-    def plot(self):
+    def plot(self, vlines: bool = False) -> None:
         state: np.ndarray = DES.vec_calculate_state(
                 self.df["arrival_time"].values,
                 self.df["end_time"].values
@@ -189,15 +189,17 @@ class DES:
         time_intervals = np.arange(len(state))
 
         # Plot the system state using step function for visual clarity
-        plt.figure(figsize=(10, 6))
-        plt.step(time_intervals, state, where='post', color='red', label=f'{self._entity_name} in System')
 
-        # plt.vlines(
-        #     self.df["arrival_time"].values, ymin=0, ymax=state.max(), color='blue', linestyle=':', label='Arrival'
-        #     )
-        # plt.vlines(
-        #     self.df["end_time"].values, ymin=0, ymax=state.max(), color='pink', linestyle=':', label='Departure'
-        #     )
+        plt.figure(figsize=(10, 6))
+        plt.step(time_intervals, state, where='post', color='purple', label=f'{self._entity_name} in System')
+
+        if vlines:
+            plt.vlines(
+                self.df["arrival_time"].values, ymin=0, ymax=state.max(), color='blue', linestyle=':', label='Arrival'
+                )
+            plt.vlines(
+                self.df["end_time"].values, ymin=0, ymax=state.max(), color='pink', linestyle=':', label='Departure'
+                )
 
         plt.xlabel(self._time_unit)
         plt.ylabel(self._entity_name)
@@ -265,7 +267,7 @@ class DES:
             "mean_time_between":                               round(self._df["time_between"].mean(), 3),
             "mean_service_time":                               round(self._df["service_time"].mean(), 3),
             "mean_idle_time":                                  round(self._df["idle_time"].mean(), 3),
-            f"mean_waiting_time":                              round(self._df["wait_time"].sum() / system_time, 3),
+            "mean_waiting_time":                               round(self._df["wait_time"].sum() / system_time, 3),
             f"mean_waiting_time for each {self._entity_name}": round(self._df["wait_time"].mean(), 3),
         }
 
