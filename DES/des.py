@@ -117,6 +117,11 @@ class DES:
         return self
 
     def set_sample_size(self, sample_size: int) -> Self:
+        """
+        set sample size
+        :param sample_size: int can't be less than 1
+        :return: the same object but set sample size
+        """
         if sample_size < 0:
             raise ValueError(f"sample_size must be greater than or equal to 0: {sample_size}")
         self._sample_size = sample_size
@@ -127,6 +132,11 @@ class DES:
         return self
 
     def set_sim_number(self, sim_number: int) -> Self:
+        """
+
+        :param sim_number: int
+        :return: Self
+        """
         self._sim_number = sim_number
         return self
 
@@ -203,7 +213,7 @@ class DES:
 
         plt.xlabel(self._time_unit)
         plt.ylabel(self._entity_name)
-        plt.title(f'{self._system_name} State Over Time')
+        plt.title(f'{self._system_name} State Over Time ({self._sim_number})')
         plt.legend()
         plt.show()
 
@@ -214,13 +224,13 @@ class DES:
         save_statistics: bool = True,
         **kwargs
     ) -> None:
-        folder_name = self._entity_name
+        folder_name = self._system_name
         os.makedirs(folder_name, exist_ok=True)
 
-        sim_folder = os.path.join(folder_name, f"sim{self._sim_number}")
+        sim_folder = os.path.join(folder_name, f"{self._entity_name}{self._sim_number}")
         os.makedirs(sim_folder, exist_ok=True)
 
-        file_path = os.path.join(sim_folder, f"sim.{file_type}")
+        file_path = os.path.join(sim_folder, f"{self._entity_name}.{file_type}")
 
         # Save DataFrame
         if file_type == "csv":

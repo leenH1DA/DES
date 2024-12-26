@@ -127,7 +127,6 @@ class DST:
         args = self.get_sim_args(with_defaults)
 
         instance = self._sim_class(**args)
-        history = []
 
         if self._weights is not None and len(self._weights) != len(self._behaviors):
             raise Exception("Weights and behaviors do not match")
@@ -137,12 +136,12 @@ class DST:
 
         for _ in range(self._behaviors_calls):
             if state_history:
-                history.append(copy.deepcopy(vars(instance)))
+                yield copy.deepcopy(instance)
 
             behavior = random.choices(self._behaviors, weights=self._weights, k=1)[0]
             behavior(instance)
 
-        return instance if not state_history else history
+        return instance
 
     def get_sim_args(self, with_defaults):
         args = {}

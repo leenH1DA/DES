@@ -5,7 +5,7 @@ from Ant import Ant
 if __name__ == "__main__":
     cars1 = DES() \
         .set_sample_size(12) \
-        .set_seed(42) \
+        .set_seed(7122004) \
         .set_time_between_distro(uniform, a=1, b=7) \
         .set_service_time_distro(uniform, a=1, b=4) \
         .set_system_name("TollBooth") \
@@ -28,7 +28,8 @@ if __name__ == "__main__":
                 Ant.move_right
             ]
     ).set_behaviors_calls(10) \
-     .set_args_ranges(x=(100, 150))
+     .set_weights([10, 1, 1, 3])
 
-    a = dst.run(state_history=True)
-    print(a)
+    ant = dst.run(state_history=True)
+    for state in ant:
+        print(state)

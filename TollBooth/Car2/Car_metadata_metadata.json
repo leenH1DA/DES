@@ -1,6 +1,6 @@
 {
     "sample_size": 12,
-    "random_seed": 44,
+    "random_seed": 7122005,
     "time_between_distro": "uniform",
     "time_between_params": {
         "a": 1,
